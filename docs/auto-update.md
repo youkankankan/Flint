@@ -87,3 +87,8 @@ step; local build success alone does not make the endpoint available.
 Older clients without updater support need this installer once. Legacy Overseer
 clients with a different application identity, endpoint or signing key must not
 be assumed to upgrade automatically into Flint. Keep the existing signing key.
+
+Distribution moved to `youkankankan/Flint`. The former `ouiegbfwvdsj/Flint`
+updater URL no longer serves a public manifest. Install this release once over
+clients using that old endpoint, including previously shared 0.1.1 builds. The
+current installer points directly at the new public distribution repository.

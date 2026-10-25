@@ -1,0 +1,13 @@
+Flint application icon: Strike / Luminous
+
+Adapted from Lucide gem and sparkles, Lucide Icons and Contributors.
+Source revision: 20aef31db93fe4d9f398dbb15b120d99c48eef95
+https://github.com/lucide-icons/lucide
+
+Changes: simplified and transformed the geometric stone contour, replaced the
+internal grid with a diagonal cut, simplified the spark, recolored and composed
+the mark, and added gradients, a clipped highlight and restrained shadow/light.
+Small-size variants omit fine highlights and blur for readability.
+
+The complete ISC license and retained upstream MIT notices accompany this file
+in lucide-icons-LICENSE.txt. No endorsement by upstream authors is implied.

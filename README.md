@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.1.1-c5a7e0?style=flat-square" alt="Version 0.1.1">
+  <img src="https://img.shields.io/badge/version-0.1.2-c5a7e0?style=flat-square" alt="Version 0.1.2">
   <img src="https://img.shields.io/badge/platform-Windows-8097b8?style=flat-square" alt="Windows desktop">
   <img src="https://img.shields.io/badge/desktop-Tauri_%2B_React-9182b5?style=flat-square" alt="Built with Tauri and React">
   <img src="https://img.shields.io/badge/status-in_development-c9a86b?style=flat-square" alt="開発中">
@@ -19,7 +19,7 @@
 
 <p align="center">
   <a href="https://github.com/youkankankan/Flint/releases">ダウンロード</a> ·
-  <a href="docs/releases/v0.1.1.md">v0.1.1の変更内容</a> ·
+  <a href="docs/releases/v0.1.2.md">v0.1.2の変更内容</a> ·
   <a href="#はじめかた">はじめかた</a> ·
   <a href="#動作環境">動作環境</a> ·
   <a href="https://github.com/youkankankan/Flint/issues">不具合を報告</a>
@@ -53,7 +53,7 @@ Minecraftサーバー本体ではなく、その隣で使う管理ツールで�
 **更新もアプリ内から。** 起動時・定期・復帰時に自動確認し、新しい版があれば変更内容を通知します。
 適用はユーザーの確認後。処理中のバックアップなどがある場合は中止し、Minecraftサーバーを勝手に停止しません。
 
-詳しい追加・修正履歴は、[v0.1.1 リリースノート](docs/releases/v0.1.1.md)にまとめています。
+最新の追加・修正履歴は、[v0.1.2 リリースノート](docs/releases/v0.1.2.md)にまとめています。接続アシスタントの独立タブ、ポート開放・Windowsの一括設定、作成ウィザードとの連携、外観とアニメーションを改善しました。
 
 ## はじめかた
 
@@ -65,6 +65,7 @@ Minecraftサーバー本体ではなく、その隣で使う管理ツールで�
 2. **サーバーを用意** — 新しく作る場合は「サーバー → 新しいサーバーを作成」。既存サーバーはフォルダーを選び、初期設定を確認します。
 3. **設定を確認** — 対応するJava、メモリ、保存先、ゲームポートを確認し、Minecraft EULAに明示的に同意します。
 4. **起動して確認** — Dashboardから起動し、Consoleで進行状況を確認します。作成完了とMinecraftの起動完了は別の状態です。
+5. **友達を招待** — 「管理 → 接続アシスタント」で診断し、ポート開放またはWindowsも含む一括設定を実行します。新規作成時はウィザードから続けて設定できます。設定変更には同意が必要です。
 
 通常の利用者がNode.jsやRustを入れる必要はありません。**Minecraftを動かすための対応Javaは別途必要**です。
 `flint-core-helper.exe` はアプリに同梱される内部部品なので、単独で起動するものではありません。
@@ -82,16 +83,19 @@ Minecraftサーバー本体ではなく、その隣で使う管理ツールで�
 | **Fabric** | FabricのMod環境 | 公式Server Launcher |
 | **Forge / NeoForge** | 各loaderに対応したMod環境 | 公式installerと生成された起動引数ファイル |
 | **Mohist** | 対応Mod・プラグインを使うハイブリッド環境 | 配布情報とチェックサムが対応する公式アーカイブビルド |
+| **Spigot / CraftBukkit** | Bukkit系プラグイン環境 | 公式BuildTools（GitとJDKが必要） |
 
 ブランドごとに実在するバージョン・ビルドを取得します。すべての過去版・beta・組合せに対応するわけではありません。
-Spigot / Bukkitの自動作成、Javaの自動インストール、Bridgeの自動導入は未対応です。
+新規作成時のBridge自動導入は対応版に限ります。Forge 1.20.1、NeoForge 1.21.1、Fabric / Vanilla 1.20.1・1.21.1には専用版を使います。Spigot / CraftBukkitの作成対象は1.20.1・1.21.1です。Javaの自動インストールは未対応です。
 [対応範囲と導入方式の詳細](docs/server-creation.md)
 
 ### 詳細監視・地図を使うには
 
-- **FlintBridge**：対応するBukkit系サーバー内で動く補助プラグイン。プレイヤー詳細、オンラインのインベントリ操作、追加診断などに使います。
+- **FlintBridge**：サーバー内で動くローカルHTTP監視用の補助機能。Bukkit版は詳細情報・インベントリ操作・追加診断に、専用Mod/agent版は基本監視に対応します。
+- 導入済みのBukkit版FlintBridgeは、Flint同梱版が新しければ自動で更新を予約します。稼働中のJarや設定は変更せず、次回のサーバー起動で反映します。Native版の自動更新は未実装です。[自動更新の動作と安全性](docs/bridge-auto-update.md)
 - **Dynmap**：マップ表示には別途ローカルDynmapが必要です。Flint自体が地形を描画するわけではありません。
-- Forge / NeoForge / FabricへBukkit版FlintBridgeをそのまま入れることはできません。取得できない情報は未取得として表示します。
+- 対応するBukkit系サーバーでDynmapが未導入なら、公式版を自動で準備し、次回起動で読み込みます。初回はローカル限定設定とし、既存の設定・描画済みマップは保持します。[自動導入の詳細](docs/dynmap-auto-install.md)
+- Forge / NeoForge / Fabricには専用のBridge Modを、Vanillaには専用Java agentを使います。Native版は基本監視に対応しますが、オンラインのインベントリ編集・内部チャンク診断・Dynmap自動導入はまだ未対応です。取得できない情報は未取得として表示します。
 
 > [!WARNING]
 > BridgeやModの交換、ワールド・playerdataの編集前にはバックアップを確保してください。
@@ -105,7 +109,7 @@ Spigot / Bukkitの自動作成、Javaの自動インストール、Bridgeの自�
 - **AIへ自動送信しない**。AI Packはローカル出力です。マスクは完全ではないため、共有前にプレビューを確認してください。
 - **公開できたと決めつけない**。UPnP転送設定やローカルTCP応答は、インターネットからの接続保証ではありません。RCON・Bridgeのポートは公開対象にしません。
 - **復元dry-runは事前確認**。ワールドを自動復元する機能ではありません。
-- **開発中のアプリ**。全ブランド・全Mod・長時間稼働・旧版からの更新を網羅した動作保証ではありません。[リリースノートの既知の制限](docs/releases/v0.1.1.md)も確認してください。
+- **開発中のアプリ**。全ブランド・全Mod・長時間稼働・旧版からの更新を網羅した動作保証ではありません。[リリースノートの既知の制限](docs/releases/v0.1.2.md)も確認してください。
 
 ## 使い方を調べる
 

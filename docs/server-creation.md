@@ -23,16 +23,56 @@ status or a successful gameplay test.
 | Forge | Forge official JSON catalog + Maven | Execute official installer, then generated Windows argument file | Published SHA-1 and installer Minecraft profile |
 | NeoForge | NeoForged official Maven JSON index | Execute official installer, then generated Windows argument file | Published SHA-256 and installer Minecraft profile |
 | Mohist | Official builds-raw archive joined to official API metadata | Numbered bootstrap jar | Published API SHA-256, archive link membership and jar format |
+| Spigot / CraftBukkit | Official Spigot revision catalog and pinned BuildTools Jenkins build | BuildTools with Git and a JDK, not a third-party server jar | Official HTTPS, revision metadata and BuildTools manifest identity; no published artifact signature claimed |
 
 Only release Minecraft versions are offered. Builds are resolved and checked
 again in Core when creation begins; GUI-provided artifact URLs are never used.
 Metadata is cached for five minutes. Provider failures are displayed rather than
 inventing versions or silently falling back to a different brand/build.
 
-Fabric's launcher fetches its runtime libraries on the first real startup. Mods
-and Fabric API are not automatically installed. Bukkit FlintBridge is not a
-Fabric mod; advanced Bridge-based monitoring is unavailable on that brand.
-No brand receives an automatically installed Bridge plugin in this phase.
+Fabric's launcher fetches its runtime libraries on the first real startup.
+New servers receive a loader-specific Bridge for the explicit matrix below.
+Spigot/CraftBukkit creation currently offers 1.20.1 and 1.21.1 only. BuildTools
+requires Git and a full JDK; it can take several minutes and substantial disk
+space. Failed/cancelled builds remain unpublished and staging is cleaned up.
+BuildTools has a 30-minute deadline (other installers: 15 minutes); cancellation
+terminates only the spawned installer process tree. Successful source-build
+workspaces are removed, retaining the server jar and build log.
+
+## Bridge compatibility
+
+| Brand | Minecraft | Automatically installed monitoring bridge |
+| --- | --- | --- |
+| Paper / Purpur / Mohist / Spigot / CraftBukkit | 1.20.1, 1.21.1, when that brand publishes the selected release | Bukkit plugin under plugins/ |
+| Forge | 1.20.1 | Forge mod under mods/ |
+| NeoForge | 1.21.1 | NeoForge mod under mods/ |
+| Fabric | 1.20.1, 1.21.1 | Fabric mod with the matching lifecycle/base API nested inside |
+| Vanilla | 1.20.1, 1.21.1 | Version-mapped Java agent under flint-data/bridge/ |
+
+This is a version allowlist, not a claim that every Minecraft release or modpack
+is compatible. Unsupported combinations show a warning; the creator never puts
+a Bukkit plugin in a mod-only server. Required bundled artifacts missing from a
+supported build cause creation to fail rather than silently omitting monitoring.
+Each new server receives its own loopback HTTP port. Existing servers and active
+profiles are not modified by creation. Installation only occurs in unpublished
+staging. Existing Bukkit Bridge update handling remains separate; native mod and
+agent automatic updates are not implemented yet.
+
+Native monitoring implements /health, /status, /players and /player/<name>.
+It samples Minecraft data on the server executor with a two-second deadline.
+Optional unavailable fields are omitted, not filled with zero or empty inventory.
+TPS uses completed tick-count deltas over a monotonic interval (not a Bukkit
+one-minute average); MSPT is exposed only when a known native getter is present.
+Provenance and unsupported reasons accompany these observations.
+Native inventory editing, native chunk/ticket diagnostics, full Bukkit player
+detail parity and native Dynmap installation are not implemented. These are not
+advertised as available. RCON remains control-only.
+
+Vanilla's agent transforms only the mapped server tick and shutdown methods,
+using official Mojang mappings with verified SHA-1 at build time. It does not
+replace the server jar. The relative javaagent argument survives staging rename.
+Fabric bundles only lifecycle/base dependencies, not all Fabric API components
+other mods might require. Third-party code retains its embedded license notices.
 
 Forge supports release Minecraft versions from 1.17 onward. NeoForge supports
 stable numbered builds in the current net.neoforged:neoforge Maven group (20.x,
@@ -146,8 +186,15 @@ is handled by its official launcher later, outside this download progress.
 - `node scripts/test-creation-rpc.cjs`: verifies the packaged helper's new RPC
   catalog/query path, ping, EULA refusal and unchanged active configuration using
   a temporary app profile. It does not connect to a Minecraft server.
-- Official metadata was also smoke-tested for all four brands with 1.20.1. This
-  is not a real server startup, gameplay, save/restart or mod compatibility test.
+- `FLINT_TEST_START_SERVERS=1 FLINT_TEST_EULA_ACCEPTED=1` with
+  `npx tsx scripts/test-bridge-startup-matrix.ts <comma-separated cases>` runs
+  disposable real servers with explicit EULA consent. The app profile, worlds,
+  ports and logs are isolated. It checks Done, HTTP health/status/players,
+  save-all, clean stop and a second startup. Reports are under
+  `.build/bridge-startup-qa`. This does not test GUI/PowerShell lifecycle,
+  authenticated player joins, modpack compatibility or every published build.
+- Native Java unit tests verify the detailed-player JSON contract, server-thread
+  execution, missing-player 404, read-only HTTP and genuinely unavailable fields.
 - `FLINT_TEST_REAL_INSTALLERS=1 npx tsx scripts/test-real-loader-installation.ts`:
   optional live download/installation test. Verified Forge 1.20.1-47.4.28, NeoForge
   21.1.264 for Minecraft 1.21.1, and Mohist 1.20.1 archive #923 in disposable local
